@@ -1,0 +1,204 @@
+
+{% extends "services/base.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+
+    <!-- Request Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Request Details</h2>
+            <p class="text-muted mb-0">
+                Request ID: #{{ service_request.id }}
+            </p>
+        </div>
+
+        <a href="{% url 'request_list' %}" class="btn btn-outline-secondary">
+            Back to Requests
+        </a>
+    </div>
+
+    <!-- Request Information -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+            <h4>{{ service_request.subject }}</h4>
+            <hr>
+
+            <div class="row g-4">
+
+                <!-- Category -->
+                <div class="col-md-6">
+                    <strong>Category</strong>
+                    <p>{{ service_request.category }}</p>
+                </div>
+
+                <!-- Priority -->
+                <div class="col-md-6">
+                    <strong>Priority</strong>
+                    <p>{{ service_request.priority }}</p>
+                </div>
+
+                <!-- Status -->
+                <div class="col-md-6">
+                    <strong>Status</strong>
+                    <p><span class="badge text-bg-secondary">{{ service_request.status }}</span></p>
+
+                    {% if can_update_status %}
+                    <form method="POST"
+                          action="{% url 'update_request_status' service_request.id %}">
+                        {% csrf_token %}
+
+                        <label for="status" class="form-label">Update Status</label>
+
+                        <select name="status" id="status" class="form-select mb-3">
+                            {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if service_request.status == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <button type="submit" class="btn btn-primary">
+                            Update Status
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    <!-- SLA Information -->
+                    <div class="mt-3">
+                        <strong>SLA Deadline</strong>
+
+                        {% if service_request.sla_deadline %}
+                            <p>{{ service_request.sla_deadline|date:"d M Y, h:i A" }}</p>
+
+                            {% if service_request.status == "Resolved" or service_request.status == "Closed" %}
+                                <span class="badge text-bg-success">Completed</span>
+                            {% elif service_request.is_sla_overdue %}
+                                <span class="badge text-bg-danger">SLA Overdue</span>
+                            {% else %}
+                                <span class="badge text-bg-success">Within SLA</span>
+                                <p class="text-muted small mt-1">
+                                    Time remaining: {{ service_request.sla_remaining }}
+                                </p>
+                            {% endif %}
+                        {% else %}
+                            <p class="text-muted">
+                                No SLA configuration found for this priority.
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Requester -->
+                <div class="col-md-6">
+                    <strong>Requester</strong>
+                    <p>{{ service_request.requester.username }}</p>
+                </div>
+
+                <!-- Assigned Technician Dropdown -->
+                <div class="col-md-6">
+                    <strong>Assigned To</strong>
+
+                    {% if can_assign_technician %}
+                    <form method="POST"
+                          action="{% url 'assign_technician' service_request.id %}">
+                        {% csrf_token %}
+
+                        <select name="assignee" class="form-select mt-2" required>
+                            <option value="">Select Technician</option>
+
+                            {% for technician in technicians %}
+                                <option value="{{ technician.id }}"
+                                    {% if service_request.assignee_id == technician.id %}selected{% endif %}>
+                                    {{ technician.username }}
+                                    {{ technician.get_full_name|default:technician.username }}
+                                </option>
+                            {% empty %}
+                                <option value="" disabled>No technicians found</option>
+                            {% endfor %}
+                        </select>
+
+                        <button type="submit" class="btn btn-primary btn-sm mt-2">
+                            Save Assignment
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    <p class="mt-2">
+                        Currently assigned:
+                        <strong>
+                            {% if service_request.assignee %}
+                                {{ service_request.assignee.get_full_name|default:service_request.assignee.username }}
+                            {% else %}
+                                Not Assigned
+                            {% endif %}
+                        </strong>
+                    </p>
+                </div>
+
+                <!-- Created At -->
+                <div class="col-md-6">
+                    <strong>Created At</strong>
+                    <p>{{ service_request.created_at|date:"d M Y, h:i A" }}</p>
+                </div>
+
+                <!-- Description -->
+                <div class="col-12">
+                    <strong>Description</strong>
+                    <div class="bg-light p-3 rounded mt-2">
+                        {{ service_request.description|linebreaksbr }}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments and Updates -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+            <h4 class="mb-3">Comments and Updates</h4>
+            <hr>
+
+            {% for comment in comments %}
+                <div class="border rounded p-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <strong>{{ comment.author.username }}</strong>
+                        <small class="text-muted">
+                            {{ comment.created_at|date:"d M Y, h:i A" }}
+                        </small>
+                    </div>
+
+                    <p class="mb-0 mt-2">
+                        {{ comment.comment|linebreaksbr }}
+                    </p>
+                </div>
+            {% empty %}
+                <p class="text-muted">No comments yet. Add the first comment below.</p>
+            {% endfor %}
+
+            <!-- Add Comment -->
+            <div class="mt-4">
+                <h5 class="mb-3">Add a Comment</h5>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        {{ form.comment }}
+
+                        {% if form.comment.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.comment.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        Submit Comment
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

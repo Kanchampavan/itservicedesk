@@ -1,0 +1,80 @@
+
+{% extends "services/base.html" %}
+
+{% block title %}Create Request | IT Service Desk{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+
+        <div class="mb-4">
+            <h2>Create Service Request</h2>
+            <p class="text-muted">
+                Describe the issue you need the IT team to resolve.
+            </p>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Subject</label>
+                        {{ form.subject }}
+                        {% for error in form.subject.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        {{ form.description }}
+                        {% for error in form.description.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        {{ form.category }}
+                        {% for error in form.category.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Priority</label>
+                        {{ form.priority }}
+                        {% for error in form.priority.errors %}
+                            <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            Submit Request
+                        </button>
+
+                        <a href="{% url 'request_list' %}"
+                           class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

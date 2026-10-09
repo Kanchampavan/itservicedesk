@@ -1,0 +1,73 @@
+{% extends "services/base.html" %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+    <h2 class="mb-4">Service Desk Dashboard</h2>
+
+    <div class="row g-4">
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Requests</h6>
+                    <h2>{{ total_requests }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">New Requests</h6>
+                    <h2 class="text-primary">{{ new_requests }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">In Progress</h6>
+                    <h2 class="text-warning">{{ in_progress_requests }}</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Resolved</h6>
+                    <h2 class="text-success">{{ resolved_requests }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Overdue Requests</h6>
+                    <h2 class="text-danger">{{ overdue_requests }}</h2>
+                    <p class="small text-muted mb-0">
+                        Requests past their SLA deadline
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'request_list' %}" class="btn btn-primary">
+            View Requests
+        </a>
+
+        {% if can_create_request %}
+        <a href="{% url 'create_request' %}" class="btn btn-outline-primary ms-2">
+            Create New Request
+        </a>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}
